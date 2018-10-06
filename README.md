@@ -11,7 +11,7 @@ The turret itself is mounted on a large, 2 axis motor, using a Nerf gun and sepe
 
 Using these serial commands, automatic control is also possible through OpenCV. The current version uses face recognition to determine a target, and attemps to vector to the center of that target before firing. Future versions will ideally be able to handle multiple targets on the screen at once and fire at a hand instead of a face.
 
-<img src="CV Control/Face Targeting.PNG " height = "96" width = "267" alt="Face Recognition"></img>
+<img src="CV Control/Face Targeting.PNG " height = "300" width = "399" alt="Face Recognition"></img>
 
 ## Setup and Use
 
