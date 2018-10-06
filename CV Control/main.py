@@ -1,9 +1,8 @@
 import numpy as np
 import cv2
 import serial
-import sys, pygame
+import sys
 import time
-pygame.init()
 
 cap = cv2.VideoCapture(0)
 try:
