@@ -1,6 +1,8 @@
 # THAD
 ## The Helpful Automated Defender  
 
+<img src="img.jpg" height = "360" width = "640" alt="THAD"></img>
+
 ## Project Purpose
 
 THAD was previously a senior design project, and was given to SPARC in a state that did not operate. The goal of the project was to return it to working order and enable it with computer vision to be able to shoot the user's hand. This will facilitate a great project for demos and shows.
