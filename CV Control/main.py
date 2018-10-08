@@ -7,8 +7,10 @@ import time
 cap = cv2.VideoCapture(0)
 try:
     ser = serial.Serial("COM3")
+    connected = True
 except:
     print("No Serial Connection to turret found")
+    connected = False
 #cap.capture(stream, format='jpeg')
 while(True):
 ##### Capture frame-by-frame
@@ -52,12 +54,15 @@ while(True):
 
 ###### TEST: MOVE OBJECT CENTER TO FRAME CENTER USING SERIAL CONNECTION #####
 
-     # Loop to check and adjust until center is within error range
+     # Check and adjust until center is within error range
     if(targetFound):
-         vector = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenter), (0,0,255), 1)
-     # If object can't be found, break the loop
-
+        vector = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenter), (0,0,255), 1)
 ###### Try to move the pose center to the frame center (close to it) 
+        if(connected):
+            connected = True
+        else:
+            print("Found target- but not connected to turret")
+
 
 ###### Display the resulting frame
     cv2.imshow('frame',circle)
