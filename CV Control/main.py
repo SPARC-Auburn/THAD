@@ -5,15 +5,15 @@ import sys
 import time
 ##CONSTANTS##
 #Pixel error margins
-XMARGIN = 10
-YMARGIN = 10  
+XMARGIN = 30
+YMARGIN = 30  
 #Camera position offsets
 OFFSETX = 0
 OFFSETY = 0
 ###
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 try:
     ser = serial.Serial("COM3")
     connected = True
