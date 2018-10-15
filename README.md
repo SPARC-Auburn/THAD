@@ -41,3 +41,9 @@ To run the turret via OpenCV:
 1. Plug your computer into the webcam and Arduino located on THAD
 1. Run the main.py program- it will currently only fire when it can see one face at a time. 
 1. Shield your face!
+
+## Future Improvements
+
+## References
+
+1. "Hand-raising gesture detection with Lienhart-Maydt method in videoconference and distance learning" http://conteudo.icmc.usp.br/pessoas/moacir/papers/NazarePonti_CIARP2013.pdf
