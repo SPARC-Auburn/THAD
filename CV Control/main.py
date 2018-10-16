@@ -3,6 +3,7 @@ import cv2
 import serial
 import sys
 import time
+import math
 ##CONSTANTS##
 #Pixel error margins
 XMARGIN = 30
@@ -10,17 +11,20 @@ YMARGIN = 30
 #Camera position offsets
 OFFSETX = 0
 OFFSETY = 0
+Pt1Y = 0
+Pt2Y = 0
+Pt2X = 0
+Pt1X = 0
 ###
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 try:
     ser = serial.Serial("COM3")
     connected = True
 except:
     print("No Serial Connection to turret found")
     connected = False
-#cap.capture(stream, format='jpeg')
 while(True):
 ##### Capture frame-by-frame
     ret, frame = cap.read()
@@ -33,36 +37,51 @@ while(True):
     font = cv2.FONT_HERSHEY_SIMPLEX                             #WIP
     cv2.putText(frame,'WIP v0.5',(10,450), font, .75,(255,255,255),2,cv2.LINE_AA)
 
-###### TEST: DETECT FACE #####  
-    face_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml')   
+##### Detect Faces
+    face_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml')  
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
     faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
-    print "Found "+str(len(faces))+" face(s)"
 
-    #Display potential faces
-
-    for (x,y,w,h) in faces:
+    #Detect Hands
+    #Define search space for hands based on face detection and size of face
+    for(x,y,w,h) in faces:
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+        Pt1X = x-w #Tuned constants for rough area of arm location based on size of face 
+        if Pt1X < 20: #Must be positive
+            Pt1X = 20
+        Pt1Y = y+h
+        if Pt1Y < 20:
+            Pt1Y = 20
+        Pt2X = x-(3*w)
+        if Pt2X < 10:
+            Pt2X = 10
+        Pt2Y = y-h
+        if Pt2Y < 10:
+            Pt2Y = 10
+        #cv2.rectangle(frame, (Pt1X,Pt1Y),(Pt2X,Pt2Y),(139,0, 139),2) #Rectangle is hidden so it does not show up in cropped image
+    #Try to find hands in search frame using contour detection
+    hand_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_hand_alt.xml')   #TODO: Trained haarcascade
+    cropped = frame[Pt2Y:Pt1Y, Pt2X:Pt1X]   #Crop image to expected area where hand would be                                       
+    grey_cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+    hands = hand_cascade.detectMultiScale(grey_cropped, 1.1, 5)      
+    for (x,y,w,h) in hands:
+        cv2.rectangle(frame,(x+Pt2X,y+Pt2Y),(x+w+Pt2X,y+h+Pt2Y),(0,0,255),2)
+        print "(" + str(x-Pt2X) + "," + str(y-Pt2Y) +")"
+    cv2.imshow('gray_crop',grey_cropped)
+    print "Found "+str(len(faces))+" face(s)" +str(len(hands))+" hand(s)"
+    #Display potential objects
 
-###### Detect human poses
-
-     #Display them
-
-###### TEST: DETERMINE IF OBJECT IS VALID TARGET #####
+##### Determine if pose is valid
     targetFound = False
-    if (len(faces) == 1):   #One face only ###TODO: MORE FACES
+    if (len(hands) == 1):   #Detect if there is one valid hand                                                                  
         targetFound = True
-        for (x,y,w,h) in faces:
-            target = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-            targetCenterX = (x+w/2)
-            targetCenterY = (y+h/2)
+        for (x,y,w,h) in hands:
+            target = cv2.rectangle(frame,(x+Pt2X,y+Pt2Y),(x+w+Pt2X,y+h+Pt2Y),(0,255,0),2)
+            targetCenterX = (x+Pt2X +(w/2))
+            targetCenterY = (y+Pt2Y+(h/2))
             targetCenterShow =  cv2.circle(frame,(targetCenterX, targetCenterY), 5, (255,255,255), -1)
 
-###### Detect a certain pose
-
-     #Recolor correct pose
-
-###### TEST: MOVE OBJECT CENTER TO FRAME CENTER USING SERIAL CONNECTION #####
+##### Move object center using serial connection
 
      # Check and adjust until center is within error range
     if(targetFound):
