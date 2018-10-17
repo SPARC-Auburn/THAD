@@ -13,7 +13,7 @@ The turret itself is mounted on a large, 2 axis motor, using a Nerf gun and sepe
 
 Using these serial commands, automatic control is also possible through OpenCV. The current version uses face recognition to determine targets, then crops a portion of the screen where the right hand might be relative to that face. Using the cropped image, it attempts to detect a right hand in a clenched fist. Future versions will ideally be able to handle multiple targets and a new haar cascade for an open hand.
 
-<img src="CV Control/Hand Targeting.JPG" height = "300" width = "399" alt="Face Recognition"></img>
+<img src="CV Control/Hand Targeting.jpg" height = "300" width = "399" alt="Face Recognition"></img>
 
 ## Setup and Use
 
