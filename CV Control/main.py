@@ -58,7 +58,7 @@ while(True):
         Pt2Y = y-h
         if Pt2Y < 10:
             Pt2Y = 10
-        #cv2.rectangle(frame, (Pt1X,Pt1Y),(Pt2X,Pt2Y),(139,0, 139),2) #Rectangle is hidden so it does not show up in cropped image
+        cv2.rectangle(frame, (Pt1X,Pt1Y),(Pt2X,Pt2Y),(139,0, 139),2) #Rectangle is hidden so it does not show up in cropped image
     #Try to find hands in search frame using contour detection
     hand_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_hand_alt.xml')   #TODO: Trained haarcascade
     cropped = frame[Pt2Y:Pt1Y, Pt2X:Pt1X]   #Crop image to expected area where hand would be                                       
