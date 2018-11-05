@@ -19,12 +19,12 @@ Pt1X = 0
 XMatched = False
 YMatched = False
 #GPIO Pins UPDATE AS NEEDED
-UP = 1
-DOWN = 2
-LEFT = 3
-RIGHT = 4
-FLYWHEEL = 5
-BLOWER = 6
+UP = 5
+DOWN = 6
+LEFT = 13
+RIGHT = 19
+FLYWHEEL = 16
+BLOWER = 20
 
 #RPi Setup
 def GPIO_setup():
@@ -42,17 +42,25 @@ def GPIO_setup():
 
 def turnTurret( direction ):
     if(direction=="stopX"):
+        GPIO.output(LEFT, GPIO.LOW)   
+        GPIO.output(RIGHT, GPIO.LOW)
         print("X Matched")
     elif(direction=="stopY"):
+        GPIO.output(UP, GPIO.LOW)
+        GPIO.output(DOWN, GPIO.LOW)
         print("Y Matched")
     else:
         if(direction=="up"):
+            GPIO.output(UP, GPIO.HIGH)
             print("Moving up")
         elif(direction=="down"):
+            GPIO.output(DOWN, GPIO.HIGH)
             print("Moving down")
         elif(direction=="left"):
+            GPIO.output(LEFT, GPIO.HIGH)
             print("Moving left")
-        elif(direction=="right"):
+        elif(direction=="right"): 
+            GPIO.output(RIGHT, GPIO.HIGH)
             print("Moving right")
 
 # Turret Fire Function
@@ -85,11 +93,11 @@ while(True):
     vline = cv2.line(viewerFrame,(frameCenterX,frameCenterY+20), (frameCenterX, frameCenterY-20), (0,0,255), 2)
     hline = cv2.line(viewerFrame,(frameCenterX+20,frameCenterY), (frameCenterX-20, frameCenterY), (0,0,255), 2)
     font = cv2.FONT_HERSHEY_SIMPLEX                             #WIP
-    cv2.putText(viewerFrame,'WIP v0.5',(10,450), font, .75,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(viewerFrame,'WIP v0.75',(10,450), font, .75,(255,255,255),2,cv2.LINE_AA)
 
     #Detect Faces
 
-    face_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml')  
+    face_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_frontalface_default.xml')  
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
     faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
     for(x,y,w,h) in faces:
@@ -109,7 +117,7 @@ while(True):
         cv2.rectangle(viewerFrame, (Pt1X,Pt1Y),(Pt2X,Pt2Y),(139,0, 139),2) #Rectangle is hidden so it does not show up in cropped image
         print str(len(faces)) + " face(s) found"
         if (len(faces) > 0): #Detected some faces
-            hand_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_hand_alt.xml')   #TODO: Trained haarcascade
+            hand_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_hand_alt.xml')   #TODO: Trained haarcascade
             cropped = frame[Pt2Y:Pt1Y, Pt2X:Pt1X]   #Crop image to expected area where hand would be   
             if cropped.size >= 0:                                    
                 grey_cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)

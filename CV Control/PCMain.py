@@ -17,7 +17,7 @@ Pt2X = 0
 Pt1X = 0
 ###
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 try:
     ser = serial.Serial("COM3")
     connected = True
@@ -145,7 +145,7 @@ while(True):
                 ser.write('h')
                 ser.write('f')
             break
-
+    cv2.imshow("Frame", frame)
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
