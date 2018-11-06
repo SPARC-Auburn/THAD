@@ -1,4 +1,5 @@
 import numpy as np
+import RPi.GPIO as GPIO
 import cv2
 import serial
 import sys
@@ -28,7 +29,6 @@ BLOWER = 20
 
 #RPi Setup
 def GPIO_setup():
-    import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(UP, GPIO.OUT)
@@ -79,7 +79,7 @@ except:
 
 # Main Control Loop    
 
-#GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
+GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
 while(True):
     # Define variables, read screen cap
