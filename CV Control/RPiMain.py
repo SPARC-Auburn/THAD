@@ -5,6 +5,8 @@ import serial
 import sys
 import time
 import math
+from mainWindow import mainWindow
+
 ##CONSTANTS##
 #Pixel error margins
 XMARGIN = 30
@@ -20,12 +22,12 @@ Pt1X = 0
 XMatched = False
 YMatched = False
 #GPIO Pins UPDATE AS NEEDED
-UP = 5
-DOWN = 6
-LEFT = 13
-RIGHT = 19
-FLYWHEEL = 16
-BLOWER = 20
+UP = 17
+DOWN = 27
+LEFT = 22
+RIGHT = 23
+FLYWHEEL = 24
+BLOWER = 25
 
 #RPi Setup
 def GPIO_setup():

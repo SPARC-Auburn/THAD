@@ -4,6 +4,8 @@ import serial
 import sys
 import time
 import math
+#from mainWindow import mainWindow
+
 ##CONSTANTS##
 #Pixel error margins
 XMARGIN = 30
@@ -24,6 +26,11 @@ try:
 except:
     print("No Serial Connection to turret found")
     connected = False
+
+
+#mainWindow = mainWindow(True, True)
+#mainWindow.start()
+
 while(True):
 ##### Capture frame-by-frame
     ret, frame = cap.read()
@@ -146,6 +153,7 @@ while(True):
                 ser.write('f')
             break
     cv2.imshow("Frame", frame)
+    # TODO: Add image to fullscreen window
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
