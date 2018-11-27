@@ -1,17 +1,12 @@
 import sys
-from Tkinter import Tk, Label
+from kivy.app import App
+from kivy.uix.widget import Widget
 
-class mainWindow:
-    def __init__(self, fullscreen, debug):
-        self.fullscreen = fullscreen
-        self.debug = debug
 
-    def start(self):
-        root = Tk()
 
-        if(self.fullscreen):
-            root.attributes('-fullscreen', True)
-        test_text = Label(root, text='Hello world!')
-        test_text.pack()
-
-        root.mainloop()
+class Game(Widget):
+        pass
+        
+class mainWindow(App):
+    def build(self):
+        return Game()
