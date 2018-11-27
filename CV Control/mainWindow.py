@@ -1,5 +1,5 @@
 import sys
-from tkinter import Tk, Label
+from Tkinter import Tk, Label
 
 class mainWindow:
     def __init__(self, fullscreen, debug):
