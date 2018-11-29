@@ -1,8 +1,8 @@
-import tkinter
+import Tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time 
-#import RPi.GPIO
+import RPi.GPIO as GPIO
 
 ##CONSTANTS##
 #Pixel error margins
@@ -26,11 +26,9 @@ RIGHT = 23
 FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
-isRPi = False
 
 #RPi Setup
 def GPIO_setup():
-    isRPi = True
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(UP, GPIO.OUT)
@@ -76,65 +74,63 @@ def turnTurret( direction ):
 
 def fireTurret():
     GPIO.output(FLYWHEEL, GPIO.LOW)
-    sleep(2.0)
     GPIO.output(BLOWER, GPIO.LOW)
-    sleep(2.0)
-    GPIO.output(FLYWHEEL, GPIO.HIGH)
-    GPIO.output(BLOWER, GPIO.HIGH)
 
-#GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
+GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
  
 class App:
     def __init__(self, window, window_title, video_source=0):
         self.window = window
         self.window.title(window_title)
-        self.window.attributes('-fullscreen', True)
+       # self.window.attributes('-fullscreen', True)
         self.video_source = video_source
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
 
-        self.frame1 = tkinter.Frame(window)
-        self.frame1.pack(fill=tkinter.BOTH)
+        self.frame1 = Tkinter.Frame(window)
+        self.frame1.pack(fill=Tkinter.BOTH)
         # Fire Button
-        self.btn_fire=tkinter.Button(self.frame1, text="Fire", width=10, height = 2, command=self.fire)
-        self.btn_fire.pack(side=tkinter.LEFT, anchor=tkinter.NW, expand=True)
+        self.btn_fire=Tkinter.Button(self.frame1, text="Fire", width=10, height = 1)
+        self.btn_fire.pack(side=Tkinter.LEFT, anchor=Tkinter.NW, expand=True)
+        self.btn_fire.bind('<ButtonPress-1>', self.fireon)
+        self.btn_fire.bind('<ButtonRelease-1>', self.fireoff)
         # Up Button
-        self.btn_up=tkinter.Button(self.frame1, text="Up", width=50, height = 2, command=self.up)
-        self.btn_up.pack(side = tkinter.LEFT, anchor=tkinter.N, expand=True)
+        self.btn_up=Tkinter.Button(self.frame1, text="Up", width=50, height = 1)
+        self.btn_up.pack(side = Tkinter.LEFT, anchor=Tkinter.N, expand=True)
         self.btn_up.bind('<ButtonPress-1>', self.up)
         self.btn_up.bind('<ButtonRelease-1>', self.y_stop)
         # Settings Button
-        self.btn_settings=tkinter.Button(self.frame1, text="Settings", width=10, height = 2, command=self.settings)
-        self.btn_settings.pack(side = tkinter.LEFT, anchor=tkinter.NE, expand=True)
+        self.btn_settings=Tkinter.Button(self.frame1, text="Settings", width=10, height = 1, command=self.settings)
+        self.btn_settings.pack(side = Tkinter.LEFT, anchor=Tkinter.NE, expand=True)
 
 
-        self.frame2 = tkinter.Frame(window)
-        self.frame2.pack(fill=tkinter.BOTH, expand = True)
+        self.frame2 = Tkinter.Frame(window)
+        self.frame2.pack(fill=Tkinter.X, expand = True)
         # Left Button
-        self.btn_left=tkinter.Button(self.frame2, text="Left", width=10, height = 50, command=self.left)
-        self.btn_left.pack(side=tkinter.LEFT, anchor=tkinter.E, expand=True)
+        self.btn_left=Tkinter.Button(self.frame2, text="Left", width=10, height = 50)
+        self.btn_left.pack(side=Tkinter.LEFT, anchor=Tkinter.E)
         self.btn_left.bind('<ButtonPress-1>', self.left)
         self.btn_left.bind('<ButtonRelease-1>', self.x_stop)
         # Create a canvas that can fit the above video source size
-        self.canvas = tkinter.Canvas(self.frame2, width = self.vid.width, height = self.vid.height, background='black')
-        self.canvas.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+        self.canvas = Tkinter.Canvas(self.frame2, width = self.vid.width, height = self.vid.height, background='black')
+        self.canvas.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
         # Right Button
-        self.btn_right=tkinter.Button(self.frame2, text="Right", width=10, height=50, command=self.right)
-        self.btn_right.pack(side=tkinter.LEFT, anchor=tkinter.W, expand=True)
+        self.btn_right=Tkinter.Button(self.frame2, text="Right", width=10, height=50)
+        self.btn_right.pack(side=Tkinter.LEFT, anchor=Tkinter.W, expand=False)
         self.btn_right.bind('<ButtonPress-1>', self.right)
         self.btn_right.bind('<ButtonRelease-1>', self.x_stop)
 
-        self.frame3 = tkinter.Frame(window)
-        self.frame3.pack(fill=tkinter.BOTH)
+        self.frame3 = Tkinter.Frame(window)
+        self.frame3.pack(fill=Tkinter.BOTH)
         # Down Button 
-        self.btn_down=tkinter.Button(self.frame3, text="Down", width=50, height = 2)
-        self.btn_down.pack(side = tkinter.BOTTOM, anchor=tkinter.S, expand=True)
+        self.btn_down=Tkinter.Button(self.frame3, text="Down", width=50, height = 20)
+        self.btn_down.pack(expand=True)
         self.btn_down.bind('<ButtonPress-1>', self.down)
         self.btn_down.bind('<ButtonRelease-1>', self.y_stop)
         # Mode Button
-        self.btn_down=tkinter.Button(self.frame3, text="Auto/Manual", width=50, height = 2, command=self.mode)
-        self.btn_down.pack(side = tkinter.BOTTOM, anchor=tkinter.S, expand=True)
+        self.btn_down=Tkinter.Button(self.frame3, text="Auto/Manual", width=50, height = 20, command=self.mode)
+        self.btn_down.pack(side = Tkinter.BOTTOM, anchor=Tkinter.S, expand=True)
         
 
         # After it is called once, the update method will be automatically called every delay milliseconds
@@ -143,33 +139,32 @@ class App:
 
         self.window.mainloop()
 
-    def down(self,event):
-        if isRPi:
-            turnTurret("down")
+    def down(self, event):
+        turnTurret("down")
+        print "Moving down"
 
     def y_stop(self,event):
-        if isRPi:
-            turnTurret("stopY")
+        turnTurret("stopY")
+        print "Stopping Y Movement"
 
     def up(self,event):
-        if isRPi:
-            turnTurret("up")
+        turnTurret("up")
+        print "Moving up"
 
     def left(self,event):
-        if isRPi:
-            turnTurret("left")
+        turnTurret("left")
 
     def x_stop(self,event):
-        if isRPi:
-            turnTurret("stopX")
+        turnTurret("stopX")
 
     def right(self,event):
-        if isRPi:
-            turnTurret("right")
+        turnTurret("right")
 
-    def fire(self):
-        if isRPi:
-            fireTurret() 
+    def fireon(self,event):
+        fireTurret() 
+    def fireoff(self,event):
+        GPIO.output(BLOWER, GPIO.HIGH)
+        GPIO.output(FLYWHEEL, GPIO.HIGH)
 
     def settings(self):
         pass
@@ -183,7 +178,7 @@ class App:
 
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
-            self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = tkinter.CENTER)
+            self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
  
         self.window.after(self.delay, self.update)
 
@@ -216,4 +211,4 @@ class MyVideoCapture:
             self.vid.release()
 
 # Create a window and pass it to the Application object
-App(tkinter.Tk(), "Tkinter and OpenCV")
+App(Tkinter.Tk(), "Tkinter and OpenCV")
