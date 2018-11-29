@@ -2,7 +2,7 @@ import Tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time 
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 
 ##CONSTANTS##
 #Pixel error margins
@@ -76,7 +76,7 @@ def fireTurret():
     GPIO.output(FLYWHEEL, GPIO.LOW)
     GPIO.output(BLOWER, GPIO.LOW)
 
-GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
+#GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
  
 class App:
@@ -87,7 +87,7 @@ class App:
         self.video_source = video_source
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
-
+        self.autoMode = True
         self.frame1 = Tkinter.Frame(window)
         self.frame1.pack(fill=Tkinter.BOTH)
         # Fire Button
@@ -125,12 +125,12 @@ class App:
         self.frame3.pack(fill=Tkinter.BOTH)
         # Down Button 
         self.btn_down=Tkinter.Button(self.frame3, text="Down", width=50, height = 20)
-        self.btn_down.pack(expand=True)
+        self.btn_down.pack(side = Tkinter.BOTTOM, expand=True)
         self.btn_down.bind('<ButtonPress-1>', self.down)
         self.btn_down.bind('<ButtonRelease-1>', self.y_stop)
         # Mode Button
         self.btn_down=Tkinter.Button(self.frame3, text="Auto/Manual", width=50, height = 20, command=self.mode)
-        self.btn_down.pack(side = Tkinter.BOTTOM, anchor=Tkinter.S, expand=True)
+        self.btn_down.pack(side = Tkinter.RIGHT, anchor=Tkinter.W, expand=True)
         
 
         # After it is called once, the update method will be automatically called every delay milliseconds
@@ -140,37 +140,44 @@ class App:
         self.window.mainloop()
 
     def down(self, event):
-        turnTurret("down")
+        #turnTurret("down")
         print "Moving down"
 
     def y_stop(self,event):
-        turnTurret("stopY")
+        #turnTurret("stopY")
         print "Stopping Y Movement"
 
     def up(self,event):
-        turnTurret("up")
+        #turnTurret("up")
         print "Moving up"
 
     def left(self,event):
-        turnTurret("left")
+        #turnTurret("left")
+        print "Moving left"
 
     def x_stop(self,event):
-        turnTurret("stopX")
+        #turnTurret("stopX")
+        print "Stopping X Movement"
 
     def right(self,event):
-        turnTurret("right")
+        #turnTurret("right")
+        print "Moving right"
 
     def fireon(self,event):
-        fireTurret() 
+        #fireTurret() 
+        print "Firing"
     def fireoff(self,event):
-        GPIO.output(BLOWER, GPIO.HIGH)
-        GPIO.output(FLYWHEEL, GPIO.HIGH)
+        #GPIO.output(BLOWER, GPIO.HIGH)
+        #GPIO.output(FLYWHEEL, GPIO.HIGH)
+        print "Stopping fire sequence"
 
     def settings(self):
         pass
 
     def mode(self):    
-        pass
+        autoMode = not autoMode
+        print "autoMode is " + autoMode
+        
         
     def update(self):
         # Get a frame from the video source
