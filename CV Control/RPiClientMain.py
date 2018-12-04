@@ -2,12 +2,13 @@ import Tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time 
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
+from USBReset import reset_USB_Device
 
 ##CONSTANTS##
 #Pixel error margins
-XMARGIN = 30
-YMARGIN = 30  
+XMARGIN = 15
+YMARGIN = 15  
 #Camera position offsets
 OFFSETX = 0
 OFFSETY = 0
@@ -26,6 +27,8 @@ RIGHT = 23
 FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
+standalone = True
+
 
 #RPi Setup
 def GPIO_setup():
@@ -76,61 +79,64 @@ def fireTurret():
     GPIO.output(FLYWHEEL, GPIO.LOW)
     GPIO.output(BLOWER, GPIO.LOW)
 
-#GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
+GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
  
 class App:
     def __init__(self, window, window_title, video_source=0):
         self.window = window
         self.window.title(window_title)
-       # self.window.attributes('-fullscreen', True)
+        self.window.attributes('-fullscreen', True)
         self.video_source = video_source
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
-        self.autoMode = True
+        self.autoMode = False
+
+
         self.frame1 = Tkinter.Frame(window)
-        self.frame1.pack(fill=Tkinter.BOTH)
+        self.frame1.pack()
         # Fire Button
-        self.btn_fire=Tkinter.Button(self.frame1, text="Fire", width=10, height = 1)
+        self.btn_fire=Tkinter.Button(self.frame1, text="Fire", width=10)
         self.btn_fire.pack(side=Tkinter.LEFT, anchor=Tkinter.NW, expand=True)
         self.btn_fire.bind('<ButtonPress-1>', self.fireon)
         self.btn_fire.bind('<ButtonRelease-1>', self.fireoff)
         # Up Button
-        self.btn_up=Tkinter.Button(self.frame1, text="Up", width=50, height = 1)
+        self.btn_up=Tkinter.Button(self.frame1, text="Up", width=50)
         self.btn_up.pack(side = Tkinter.LEFT, anchor=Tkinter.N, expand=True)
         self.btn_up.bind('<ButtonPress-1>', self.up)
         self.btn_up.bind('<ButtonRelease-1>', self.y_stop)
         # Settings Button
-        self.btn_settings=Tkinter.Button(self.frame1, text="Settings", width=10, height = 1, command=self.settings)
+        self.btn_settings=Tkinter.Button(self.frame1, text="Settings", width=10, command=self.settings)
         self.btn_settings.pack(side = Tkinter.LEFT, anchor=Tkinter.NE, expand=True)
 
 
         self.frame2 = Tkinter.Frame(window)
-        self.frame2.pack(fill=Tkinter.X, expand = True)
+        self.frame2.pack()
         # Left Button
-        self.btn_left=Tkinter.Button(self.frame2, text="Left", width=10, height = 50)
+        self.btn_left=Tkinter.Button(self.frame2, text="Left", height=30)
         self.btn_left.pack(side=Tkinter.LEFT, anchor=Tkinter.E)
         self.btn_left.bind('<ButtonPress-1>', self.left)
         self.btn_left.bind('<ButtonRelease-1>', self.x_stop)
         # Create a canvas that can fit the above video source size
-        self.canvas = Tkinter.Canvas(self.frame2, width = self.vid.width, height = self.vid.height, background='black')
-        self.canvas.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
+        self.canvas = Tkinter.Canvas(self.frame2, width = self.vid.width, height = 425, background='black')
+        self.canvas.pack(side=Tkinter.LEFT)
         # Right Button
-        self.btn_right=Tkinter.Button(self.frame2, text="Right", width=10, height=50)
-        self.btn_right.pack(side=Tkinter.LEFT, anchor=Tkinter.W, expand=False)
+        self.btn_right=Tkinter.Button(self.frame2, text="Right", height=30)
+        self.btn_right.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
         self.btn_right.bind('<ButtonPress-1>', self.right)
         self.btn_right.bind('<ButtonRelease-1>', self.x_stop)
+        
 
         self.frame3 = Tkinter.Frame(window)
-        self.frame3.pack(fill=Tkinter.BOTH)
+        self.frame3.pack()
         # Down Button 
-        self.btn_down=Tkinter.Button(self.frame3, text="Down", width=50, height = 20)
-        self.btn_down.pack(side = Tkinter.BOTTOM, expand=True)
+        self.btn_down=Tkinter.Button(self.frame3, text="Down", width=50)
+        self.btn_down.pack(side = Tkinter.LEFT)
         self.btn_down.bind('<ButtonPress-1>', self.down)
         self.btn_down.bind('<ButtonRelease-1>', self.y_stop)
         # Mode Button
-        self.btn_down=Tkinter.Button(self.frame3, text="Auto/Manual", width=50, height = 20, command=self.mode)
-        self.btn_down.pack(side = Tkinter.RIGHT, anchor=Tkinter.W, expand=True)
+        self.btn_down=Tkinter.Button(self.frame3, text="Auto/Manual", width=10, command=self.mode)
+        self.btn_down.pack(side = Tkinter.LEFT, anchor=Tkinter.E)
         
 
         # After it is called once, the update method will be automatically called every delay milliseconds
@@ -140,55 +146,148 @@ class App:
         self.window.mainloop()
 
     def down(self, event):
-        #turnTurret("down")
+        turnTurret("down")
         print "Moving down"
 
     def y_stop(self,event):
-        #turnTurret("stopY")
+        turnTurret("stopY")
         print "Stopping Y Movement"
 
     def up(self,event):
-        #turnTurret("up")
+        turnTurret("up")
         print "Moving up"
 
     def left(self,event):
-        #turnTurret("left")
+        turnTurret("left")
         print "Moving left"
 
     def x_stop(self,event):
-        #turnTurret("stopX")
+        turnTurret("stopX")
         print "Stopping X Movement"
 
     def right(self,event):
-        #turnTurret("right")
+        turnTurret("right")
         print "Moving right"
 
     def fireon(self,event):
-        #fireTurret() 
+        fireTurret() 
         print "Firing"
     def fireoff(self,event):
-        #GPIO.output(BLOWER, GPIO.HIGH)
-        #GPIO.output(FLYWHEEL, GPIO.HIGH)
+        GPIO.output(BLOWER, GPIO.HIGH)
+        GPIO.output(FLYWHEEL, GPIO.HIGH)
         print "Stopping fire sequence"
 
     def settings(self):
         pass
 
+    def detectFaces(self, frame):
+        if standalone == True:
+            frameCenterX = ((frame.shape[1] / 2))
+            frameCenterY = ((frame.shape[0] / 2))
+            
+            # Draw Statics
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            circle = cv2.circle(frame,(frameCenterX,frameCenterY), 2, (0,0,255), 1)    #Center Target
+            vline = cv2.line(frame,(frameCenterX,frameCenterY+5), (frameCenterX, frameCenterY-5), (0,0,255), 2)
+            hline = cv2.line(frame,(frameCenterX+5,frameCenterY), (frameCenterX-5, frameCenterY), (0,0,255), 2)
+            hand_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
+            face_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_frontalface_default.xml')  
+            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
+            faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
+            for(x,y,w,h) in faces:
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2) #Display box for viewer  
+                print str(len(faces)) + " face(s) found"
+            if (len(faces)== 1): #Detected 1 face and in standalone mode
+                Pt1X = x-w #Tuned constants for rough area of arm location based on size of face 
+                if Pt1X < 20: #Must be positive
+                    Pt1X = 20
+                Pt1Y = y+h
+                if Pt1Y < 20:
+                    Pt1Y = 20
+                Pt2X = x-(3*w)
+                if Pt2X < 10:
+                    Pt2X = 10
+                Pt2Y = y-h
+                if Pt2Y < 10:
+                    Pt2Y = 10
+                cv2.rectangle(frame, (Pt1X,Pt1Y),(Pt2X,Pt2Y),(139,0, 139),2) #Rectangle is hidden so it does not show up in cropped image
+                cropped = frame[Pt2Y:Pt1Y, Pt2X:Pt1X]   #Crop image to expected area where hand would be   
+                if cropped.size >= 0:                                    
+                    grey_cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+                    hands = hand_cascade.detectMultiScale(grey_cropped, 1.1, 5)      
+                    for (x,y,w,h) in hands:
+                        cv2.rectangle(frame,(x+Pt2X,y+Pt2Y),(x+w+Pt2X,y+h+Pt2Y),(0,0,255),2)
+                        if(len(hands) == 1): #1 hand found, draw target, vector and turn towards target
+                            print "Target found!"
+                            target = cv2.rectangle(frame,(x+Pt2X,y+Pt2Y),(x+w+Pt2X,y+h+Pt2Y),(0,255,0),2)
+                            targetCenterX = (x+Pt2X +(w/2))
+                            targetCenterY = (y+Pt2Y+(h/2))
+                            targetCenterShow =  cv2.circle(frame,(targetCenterX, targetCenterY), 5, (255,255,255), -1)
+
+                            #Draw Vector to Target
+                            distanceX = frameCenterX-targetCenterX
+                            cv2.putText(frame,str(distanceX),(frameCenterX-distanceX,frameCenterY-10), font, .5,(255,255,255),2,cv2.LINE_AA)
+                            distanceY = frameCenterY-targetCenterY
+                            cv2.putText(frame,str(distanceY),(frameCenterX-10,frameCenterY-distanceY), font, .5,(255,255,255),2,cv2.LINE_AA)
+                            vector = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, targetCenterY), (0,0,255), 1)
+                            vectorX = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, frameCenterY), (0,255,0), 1)
+                            vectorY = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (frameCenterX, targetCenterY), (0,255,0), 1)    
+                            # Adjust X axis
+                             #Negative
+                            if(distanceX<-1*XMARGIN):
+                                turnTurret("right")
+                             #Positive
+                            elif(distanceX>XMARGIN):
+                                turnTurret("left")
+                             #XMatched
+                            else:
+                                turnTurret("stopX")
+                            #Adjust Y axis
+                            #Negative
+                            if(distanceY<-1*YMARGIN):
+                                turnTurret("down")
+                            #Positive
+                            elif(distanceY>YMARGIN):
+                                turnTurret("up")
+                            else:
+                                turnTurret("stopY")
+                            return True
+                        else:
+                            print "No hands found"
+                            return False
+            else:
+                print "More than one face found"
+                return False
+        else:
+            pass
+
     def mode(self):    
-        autoMode = not autoMode
-        print "autoMode is " + autoMode
+        self.autoMode = not self.autoMode
+        print "autoMode is " + str(self.autoMode)
         
         
     def update(self):
-        # Get a frame from the video source
-        ret, frame = self.vid.get_frame()
+        #try:
+        
+            # Get a frame from the video source
+            ret, frame = self.vid.get_frame()
 
-        if ret:
-            self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
-            self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
- 
-        self.window.after(self.delay, self.update)
-
+            if ret:
+                if self.autoMode:
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
+                    imageResize = cv2.resize(frame, None, fx = 0.65, fy = 0.65)
+                    if not (self.detectFaces(imageResize)):
+                        turnTurret("stopX")
+                        turnTurret("stopY")
+                    self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(imageResize))
+                    self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+                else:
+                    self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+                    self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+        #except:
+            self.window.after(self.delay, self.update)
+        
 
 class MyVideoCapture:
     def __init__(self, video_source=0):
