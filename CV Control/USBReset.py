@@ -34,7 +34,7 @@ USB_DEV_NAME = 'GEMBIRD'
 #=================================================================
 # Reset Modem
 #=================================================================
-def reset_USB_Device(deviceName):
+def reset_USB_Device():
 
         # Same as _IO('U', 20) constant in the linux kernel.
         CONST_USB_DEV_FS_RESET_CODE = ord('U') << (4*2) | 20
@@ -46,7 +46,7 @@ def reset_USB_Device(deviceName):
         cmd_output = proc.communicate()[0]
         usb_device_list = cmd_output.split('\n')
         for device in usb_device_list:
-                if deviceName in device:
+                if USB_DEV_NAME in device:
                         print device
                         usb_dev_details = device.split()
                         usb_bus = usb_dev_details[1]
@@ -70,6 +70,8 @@ def reset_USB_Device(deviceName):
                         pass
 
 #=================================================================
+if __name__ == "__main__":
+    reset_USB_Device()
+    print "I think I'm main"
 
 
-reset_USB_Device(USB_DEV_NAME)

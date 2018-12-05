@@ -83,7 +83,7 @@ GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
  
 class App:
-    def __init__(self, window, window_title, video_source=0):
+    def __init__(self, window, window_title, video_source):
         self.window = window
         self.window.title(window_title)
         self.window.attributes('-fullscreen', True)
@@ -114,21 +114,23 @@ class App:
         self.frame2.pack()
         # Left Button
         self.btn_left=Tkinter.Button(self.frame2, text="Left", height=30)
-        self.btn_left.pack(side=Tkinter.LEFT, anchor=Tkinter.E)
+        self.btn_left.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
         self.btn_left.bind('<ButtonPress-1>', self.left)
         self.btn_left.bind('<ButtonRelease-1>', self.x_stop)
         # Create a canvas that can fit the above video source size
-        self.canvas = Tkinter.Canvas(self.frame2, width = self.vid.width, height = 425, background='black')
+        self.canvas = Tkinter.Canvas(self.frame2, width = self.vid.width, height = 430, background='black')
         self.canvas.pack(side=Tkinter.LEFT)
         # Right Button
         self.btn_right=Tkinter.Button(self.frame2, text="Right", height=30)
-        self.btn_right.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
+        self.btn_right.pack(side=Tkinter.LEFT, anchor=Tkinter.E)
         self.btn_right.bind('<ButtonPress-1>', self.right)
         self.btn_right.bind('<ButtonRelease-1>', self.x_stop)
-        
 
         self.frame3 = Tkinter.Frame(window)
         self.frame3.pack()
+	# Reset Button
+        self.btn_reset=Tkinter.Button(self.frame3, text="Reset Camera",command = self.resetUSB)
+        self.btn_reset.pack(side = Tkinter.LEFT)
         # Down Button 
         self.btn_down=Tkinter.Button(self.frame3, text="Down", width=50)
         self.btn_down.pack(side = Tkinter.LEFT)
@@ -144,7 +146,13 @@ class App:
         self.update()
 
         self.window.mainloop()
-
+    def resetUSB(self):
+        reset_USB_Device()
+        if (self.video_source == 0):
+            self.video_source+=1
+        else:
+            self.video_source = 0
+        self.vid = MyVideoCapture(self.video_source)
     def down(self, event):
         turnTurret("down")
         print "Moving down"
@@ -187,15 +195,15 @@ class App:
             
             # Draw Statics
             font = cv2.FONT_HERSHEY_SIMPLEX
-            circle = cv2.circle(frame,(frameCenterX,frameCenterY), 2, (0,0,255), 1)    #Center Target
-            vline = cv2.line(frame,(frameCenterX,frameCenterY+5), (frameCenterX, frameCenterY-5), (0,0,255), 2)
-            hline = cv2.line(frame,(frameCenterX+5,frameCenterY), (frameCenterX-5, frameCenterY), (0,0,255), 2)
+            #circle = cv2.circle(frame,(frameCenterX,frameCenterY), 2, (0,0,255), 1)    #Center Target
+            #vline = cv2.line(frame,(frameCenterX,frameCenterY+5), (frameCenterX, frameCenterY-5), (0,0,255), 2)
+            #hline = cv2.line(frame,(frameCenterX+5,frameCenterY), (frameCenterX-5, frameCenterY), (0,0,255), 2)
             hand_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
             face_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_frontalface_default.xml')  
             gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
             faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
             for(x,y,w,h) in faces:
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2) #Display box for viewer  
+                #cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2) #Display box for viewer  
                 print str(len(faces)) + " face(s) found"
             if (len(faces)== 1): #Detected 1 face and in standalone mode
                 Pt1X = x-w #Tuned constants for rough area of arm location based on size of face 
@@ -222,16 +230,16 @@ class App:
                             target = cv2.rectangle(frame,(x+Pt2X,y+Pt2Y),(x+w+Pt2X,y+h+Pt2Y),(0,255,0),2)
                             targetCenterX = (x+Pt2X +(w/2))
                             targetCenterY = (y+Pt2Y+(h/2))
-                            targetCenterShow =  cv2.circle(frame,(targetCenterX, targetCenterY), 5, (255,255,255), -1)
+                            #targetCenterShow =  cv2.circle(frame,(targetCenterX, targetCenterY), 5, (255,255,255), -1)
 
                             #Draw Vector to Target
                             distanceX = frameCenterX-targetCenterX
-                            cv2.putText(frame,str(distanceX),(frameCenterX-distanceX,frameCenterY-10), font, .5,(255,255,255),2,cv2.LINE_AA)
+                            #cv2.putText(frame,str(distanceX),(frameCenterX-distanceX,frameCenterY-10), font, .5,(255,255,255),2,cv2.LINE_AA)
                             distanceY = frameCenterY-targetCenterY
-                            cv2.putText(frame,str(distanceY),(frameCenterX-10,frameCenterY-distanceY), font, .5,(255,255,255),2,cv2.LINE_AA)
-                            vector = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, targetCenterY), (0,0,255), 1)
-                            vectorX = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, frameCenterY), (0,255,0), 1)
-                            vectorY = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (frameCenterX, targetCenterY), (0,255,0), 1)    
+                            #cv2.putText(frame,str(distanceY),(frameCenterX-10,frameCenterY-distanceY), font, .5,(255,255,255),2,cv2.LINE_AA)
+                            #vector = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, targetCenterY), (0,0,255), 1)
+                            #vectorX = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (targetCenterX, frameCenterY), (0,255,0), 1)
+                            #vectorY = cv2.arrowedLine(frame, (frameCenterX, frameCenterY), (frameCenterX, targetCenterY), (0,255,0), 1)    
                             # Adjust X axis
                              #Negative
                             if(distanceX<-1*XMARGIN):
@@ -290,7 +298,7 @@ class App:
         
 
 class MyVideoCapture:
-    def __init__(self, video_source=0):
+    def __init__(self, video_source):
        # Open the video source
         self.vid = cv2.VideoCapture(video_source)
         if not self.vid.isOpened():
@@ -317,4 +325,4 @@ class MyVideoCapture:
             self.vid.release()
 
 # Create a window and pass it to the Application object
-App(Tkinter.Tk(), "Tkinter and OpenCV")
+App(Tkinter.Tk(), "Tkinter and OpenCV", 0)
