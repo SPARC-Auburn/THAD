@@ -1,13 +1,13 @@
 # THAD
 ## The Helpful Automated Defender  
 
-<img src="img.jpg" height = "360" width = "640" alt="THAD"></img>
+<img src="CV Control/IMG_6561.JPG" height = "360" width = "640" alt="THAD"></img>
 
 ## Project Purpose
 
 THAD was previously a senior design project, and was given to SPARC in a state that did not operate. The goal of the project was to return it to working order and enable it with computer vision to be able to shoot the user's hand. This will facilitate a great project for demos and shows.
 
-## Project Overview
+## Project Overview (NEEDS UPDATE)
 
 The turret itself is mounted on a large, 2 axis motor, using a Nerf gun and seperate blower as its firing mechanism. The turret is controlled by a 5V 8-relay module to an Arduino. The arduino responds to serial commands. These commands are sent from various sources, and all that is required are (W,A,S,D,Q) characters to be sent over serial to operate. (These are Up, Left, Down, Right, and Fire respectively)
 
@@ -17,7 +17,9 @@ Using these serial commands, automatic control is also possible through OpenCV. 
 
 ## Setup and Use
 
-### Manual
+### Manual (NEEDS UPDATE)
+
+<img src="CV Control/IMG_6565.JPG" height= "300" width = "399" alt="Control Box"></img>
 
 To run the turret manually via keyboard: 
 1. Upload the .ino file located in the Manual folder to the Arduino. 
@@ -33,7 +35,7 @@ To run the turret manually via keyboard:
   * You may have to change the port in the .py code. Simply change "COM3" to the port the Arduino is plugged into.
 4. With the PyGame window active, use the keys W,A,S,D and Q to control the turret.  
 
-### OpenCV(Computer Vision)
+### OpenCV(Computer Vision) (NEEDS UPDATE)
 
 To run the turret via OpenCV:
 1. Ensure Python 2.7 and OpenCV are compiled and usable natively from your OS Path.
