@@ -2,7 +2,7 @@ import Tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time 
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 from USBReset import reset_USB_Device
 
 ##CONSTANTS##
@@ -79,7 +79,7 @@ def fireTurret():
     GPIO.output(FLYWHEEL, GPIO.LOW)
     GPIO.output(BLOWER, GPIO.LOW)
 
-GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
+#GPIO_setup() #UNCOMMENT THIS LINE FOR RUNNING ON RASPBERRY PI
 
  
 class App:
@@ -186,7 +186,7 @@ class App:
         print "Stopping fire sequence"
 
     def settings(self):
-        pass
+        self.settingsWindow = window.Toplevel()
 
     def detectFaces(self, frame):
         if standalone == True:
