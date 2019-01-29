@@ -2,8 +2,9 @@ import Tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time 
+import socket
 #import RPi.GPIO as GPIO
-from USBReset import reset_USB_Device
+#from USBReset import reset_USB_Device
 
 ##CONSTANTS##
 #Pixel error margins
@@ -27,7 +28,7 @@ RIGHT = 23
 FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
-standalone = True
+standalone = 1
 
 
 #RPi Setup
@@ -147,7 +148,7 @@ class App:
 
         self.window.mainloop()
     def resetUSB(self):
-        reset_USB_Device()
+        #reset_USB_Device()
         if (self.video_source == 0):
             self.video_source+=1
         else:
@@ -186,10 +187,39 @@ class App:
         print "Stopping fire sequence"
 
     def settings(self):
-        self.settingsWindow = window.Toplevel()
+        self.settingsWindow = Tkinter.Toplevel(self.window)
+        self.settingsWindow.title = "Settings"
+        self.sframe1 = Tkinter.Frame(self.settingsWindow)
+        self.sframe1.pack()
+        self.standaloneOption = Tkinter.Radiobutton(self.sframe1, text="Standalone", variable=standalone, value=1).pack()
+        self.remoteOption = Tkinter.Radiobutton(self.sframe1, text="Remote Processing", variable=standalone, value=2).pack()
+        self.text = Tkinter.StringVar()
+        self.output = Tkinter.Label(self.sframe1, textvariable=self.text).pack()
+        self.text.set("Enable PC Connection")
+        self.sframe2 = Tkinter.Frame(self.settingsWindow)
+        self.sframe2.pack()
+        self.connectButton = Tkinter.Button(self.sframe2, text="Test Connection", command=self.connectToPC).pack(side=Tkinter.LEFT )
+        self.closeButton = Tkinter.Button(self.sframe2,text="Close",command=self.closeSettings).pack( side=Tkinter.LEFT )
+
+    def connectToPC(self):
+        TCP_IP = '127.0.0.1'
+        TCP_PORT = 5005
+        BUFFER_SIZE = 1024
+        MESSAGE = "Hello, PC!"
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((TCP_IP, TCP_PORT))
+        s.send(MESSAGE)
+        data = s.recv(BUFFER_SIZE)
+        s.close()
+
+        self.text.set(data)
+
+    def closeSettings(self):
+        self.settingsWindow.destroy()
 
     def detectFaces(self, frame):
-        if standalone == True:
+        if standalone == 1:
             frameCenterX = ((frame.shape[1] / 2))
             frameCenterY = ((frame.shape[0] / 2))
             
