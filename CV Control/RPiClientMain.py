@@ -3,6 +3,7 @@ import cv2
 import PIL.Image, PIL.ImageTk
 import time 
 import socket
+import numpy as np
 #import RPi.GPIO as GPIO
 #from USBReset import reset_USB_Device
 
@@ -28,7 +29,10 @@ RIGHT = 23
 FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
-standalone = 1
+standalone = 0
+PC_IP = '127.0.0.1'
+PC_PORT = 5005
+PCBUFFER_SIZE = 1024
 
 
 #RPi Setup
@@ -50,6 +54,8 @@ def GPIO_setup():
     GPIO.output(BLOWER, GPIO.HIGH)
 
 # Turret Control Function
+
+
 
 def turnTurret( direction ):
     if(direction=="stopX"):
@@ -297,7 +303,20 @@ class App:
                 print "More than one face found"
                 return False
         else:
-            pass
+            try:
+                while standalone != 1:
+                    try:
+                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        s.connect((PC_IP, PC_PORT))
+                        encodedimg = cv2.imencode('.jpg', frame)
+                        s.send(encodedimg)
+                        time.sleep(0.01) 
+                    except Exception: 
+                        print "Error sending to PC"
+                s.close()
+            except:
+                pass
+
 
     def mode(self):    
         self.autoMode = not self.autoMode
@@ -312,14 +331,22 @@ class App:
 
             if ret:
                 if self.autoMode:
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
-                    imageResize = cv2.resize(frame, None, fx = 0.65, fy = 0.65)
-                    if not (self.detectFaces(imageResize)):
-                        turnTurret("stopX")
-                        turnTurret("stopY")
-                    self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(imageResize))
-                    self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+                    if standalone == 1:
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
+                        imageResize = cv2.resize(frame, None, fx = 0.65, fy = 0.65)
+                        if not (self.detectFaces(imageResize)):
+                            turnTurret("stopX")
+                            turnTurret("stopY")
+                        self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(imageResize))
+                        self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+                    else:
+                        cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
+                        if not (self.detectFaces(frame)):
+                            turnTurret("stopX")
+                            turnTurret("stopY")
+                        self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+                        self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
                 else:
                     self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
                     self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
