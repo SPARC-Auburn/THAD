@@ -30,7 +30,7 @@ FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
 standalone = 0
-PC_IP = '127.0.0.1'
+PC_IP = '10.42.0.1'
 PC_PORT = 5005
 PCBUFFER_SIZE = 1024
 
