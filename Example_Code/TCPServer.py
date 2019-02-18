@@ -1,6 +1,7 @@
 #!/usr/bin/env python
  
 import socket
+import select
 import numpy
 import cv2
 
@@ -15,8 +16,8 @@ def detectFaces(frame):
     circle = cv2.circle(frame,(frameCenterX,frameCenterY), 2, (0,0,255), 1)    #Center Target
     vline = cv2.line(frame,(frameCenterX,frameCenterY+5), (frameCenterX, frameCenterY-5), (0,0,255), 2)
     hline = cv2.line(frame,(frameCenterX+5,frameCenterY), (frameCenterX-5, frameCenterY), (0,0,255), 2)
-    hand_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
-    face_cascade = cv2.CascadeClassifier('C:\Users\joshj\Downloads\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml')  
+    hand_cascade = cv2.CascadeClassifier('../haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
+    face_cascade = cv2.CascadeClassifier('../haarcascade_frontalface_default.xml')  
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
     faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
     for(x,y,w,h) in faces:
@@ -60,21 +61,37 @@ def detectFaces(frame):
 def recvall(sock, count):
     buf = b''
     while count:
-        newbuf = sock.recv(count)
+        try:
+            newbuf = sock.recv(count)
+        except socket.error:
+            return -1
         if not newbuf: return None
         buf += newbuf
         count -= len(newbuf)
     return buf
-
+def getLatestFrame(conn):
+    length = -1
+    stringData = -1
+    while 1:
+        length2 = recvall(conn,16)
+        if length2 != -1:
+            length = length2
+            stringData = recvall(conn, int(length))       
+        elif length != -1:
+            return stringData
+    
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 while 1:
     conn, addr = s.accept()
     print 'Connection address:', addr
+    conn.setblocking(False)
     while 1:
-        length = recvall(conn,16)
-        stringData = recvall(conn, int(length))
+        
+        stringData = getLatestFrame(conn)
+        
         data = numpy.fromstring(stringData, dtype='uint8')
         decimg=cv2.imdecode(data,1)
         detectFaces(decimg)

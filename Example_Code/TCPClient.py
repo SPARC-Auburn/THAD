@@ -20,8 +20,7 @@ while True:
 	if ret:
 		encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),100]
 		result, imgencode = cv2.imencode('.jpg', frame, encode_param)
-		data = numpy.array(imgencode)
-		stringData = data.tostring()
+		stringData = imgencode.tostring()
 		try:
 			time.sleep(.0001) #otherwise send to fast and the server receive images in pieces and fail
 			socket.send( str(len(stringData)).ljust(16))
@@ -34,7 +33,7 @@ while True:
 			print("Error from server side")
 			socket.close()
 			break
-		decimg=cv2.imdecode(data,1)
+		decimg=cv2.imdecode(imgencode,1)
 		cv2.imshow('CLIENT',decimg)
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
