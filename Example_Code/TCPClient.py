@@ -13,14 +13,15 @@ send = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, PORT+1))
-send.connect((IP,PORT))
 s.listen(1)
+conn, addr = s.accept()
+send.connect((addr[0],PORT))
+
 #res = cam.getImage().size
 #socket.send(str(res[0])) #Send webcam resolution
 
 time.sleep(1)
 try:
-	conn, addr = s.accept()
 	conn.setblocking(False)
 	while True:
 		ret, frame = cap.read()
@@ -42,16 +43,16 @@ try:
 				break
 			decimg=cv2.imdecode(imgencode,1)
 			try:
-				rec = conn.recv(8)
-				(x,y) = struct.unpack("ii",rec)
-				print "Hand at x:",
-				print x,
-				print " y:",
-				print y
-				cv2.circle(decimg,(x,y),5,(255,255,0),3)
+				rec = conn.recv(4*12)
+				(fx,fy,fw,fh,sx,sy,sw,sh,hx,hy,hw,hh) = struct.unpack("iiiiiiiiiiii",rec)
+				if fx >= 0:
+					cv2.rectangle(frame,(fx,fy),(fx+fw,fy+fh),(0,0,255),3)
+					cv2.rectangle(frame,(sx,sy),(sx+sw,sy+sh),(255,0,255),3)
+					if hx >= 0:
+						cv2.rectangle(frame,(hx,hy),(hx+hw,hy+hh),(0,255,0),3)
 			except socket.error:
 				pass
-			cv2.imshow('CLIENT',decimg)
+			cv2.imshow('CLIENT',frame)	
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				break
 except Exception as e:

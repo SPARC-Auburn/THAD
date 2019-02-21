@@ -4,8 +4,11 @@ import PIL.Image, PIL.ImageTk
 import time 
 import socket
 import numpy as np
-#import RPi.GPIO as GPIO
-#from USBReset import reset_USB_Device
+import struct
+pi = False
+if pi:
+    import RPi.GPIO as GPIO
+    from USBReset import reset_USB_Device
 
 ##CONSTANTS##
 #Pixel error margins
@@ -30,10 +33,9 @@ FLYWHEEL = 24
 BLOWER = 25
 #Dev variables
 standalone = 0
-PC_IP = '10.42.0.1'
-PC_PORT = 5005
-PCBUFFER_SIZE = 1024
-
+TCP_IP = '127.0.0.1'
+PORT = 5005
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 #RPi Setup
 def GPIO_setup():
@@ -98,8 +100,8 @@ class App:
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
         self.autoMode = False
-
-
+        self.standalone = Tkinter.BooleanVar()
+        self.standalone.set(standalone)
         self.frame1 = Tkinter.Frame(window)
         self.frame1.pack()
         # Fire Button
@@ -150,6 +152,9 @@ class App:
 
         # After it is called once, the update method will be automatically called every delay milliseconds
         self.delay = 15
+
+        self.initSockets()
+        self.datum = [0,0,0,0,0,0,0,0,0,0,0,0]
         self.update()
 
         self.window.mainloop()
@@ -161,35 +166,43 @@ class App:
             self.video_source = 0
         self.vid = MyVideoCapture(self.video_source)
     def down(self, event):
-        turnTurret("down")
+        if pi:
+            turnTurret("down")
         print "Moving down"
 
     def y_stop(self,event):
-        turnTurret("stopY")
+        if pi:
+            turnTurret("stopY")
         print "Stopping Y Movement"
 
     def up(self,event):
-        turnTurret("up")
+        if pi:
+            turnTurret("up")
         print "Moving up"
 
     def left(self,event):
-        turnTurret("left")
+        if pi:
+            turnTurret("left")
         print "Moving left"
 
     def x_stop(self,event):
-        turnTurret("stopX")
+        if pi:
+            turnTurret("stopX")
         print "Stopping X Movement"
 
     def right(self,event):
-        turnTurret("right")
+        if pi:
+            turnTurret("right")
         print "Moving right"
 
     def fireon(self,event):
-        fireTurret() 
+        if pi:
+            fireTurret() 
         print "Firing"
     def fireoff(self,event):
-        GPIO.output(BLOWER, GPIO.HIGH)
-        GPIO.output(FLYWHEEL, GPIO.HIGH)
+        if pi:
+            GPIO.output(BLOWER, GPIO.HIGH)
+            GPIO.output(FLYWHEEL, GPIO.HIGH)
         print "Stopping fire sequence"
 
     def settings(self):
@@ -197,8 +210,8 @@ class App:
         self.settingsWindow.title = "Settings"
         self.sframe1 = Tkinter.Frame(self.settingsWindow)
         self.sframe1.pack()
-        self.standaloneOption = Tkinter.Radiobutton(self.sframe1, text="Standalone", variable=standalone, value=1).pack()
-        self.remoteOption = Tkinter.Radiobutton(self.sframe1, text="Remote Processing", variable=standalone, value=2).pack()
+        self.standaloneOption = Tkinter.Radiobutton(self.sframe1, text="Standalone", variable=self.standalone, value=True).pack()
+        self.remoteOption = Tkinter.Radiobutton(self.sframe1, text="Remote Processing", variable=self.standalone, value=False).pack()
         self.text = Tkinter.StringVar()
         self.output = Tkinter.Label(self.sframe1, textvariable=self.text).pack()
         self.text.set("Enable PC Connection")
@@ -208,7 +221,8 @@ class App:
         self.closeButton = Tkinter.Button(self.sframe2,text="Close",command=self.closeSettings).pack( side=Tkinter.LEFT )
 
     def connectToPC(self):
-        TCP_IP = '127.0.0.1'
+        print(self.standalone.get())
+        '''TCP_IP = '127.0.0.1'
         TCP_PORT = 5005
         BUFFER_SIZE = 1024
         MESSAGE = "Hello, PC!"
@@ -219,23 +233,23 @@ class App:
         data = s.recv(BUFFER_SIZE)
         s.close()
 
-        self.text.set(data)
+        self.text.set(data)'''
 
     def closeSettings(self):
         self.settingsWindow.destroy()
 
     def detectFaces(self, frame):
-        if standalone == 1:
+        if self.standalone.get():
             frameCenterX = ((frame.shape[1] / 2))
             frameCenterY = ((frame.shape[0] / 2))
             
             # Draw Statics
-            font = cv2.FONT_HERSHEY_SIMPLEX
+            
             #circle = cv2.circle(frame,(frameCenterX,frameCenterY), 2, (0,0,255), 1)    #Center Target
             #vline = cv2.line(frame,(frameCenterX,frameCenterY+5), (frameCenterX, frameCenterY-5), (0,0,255), 2)
             #hline = cv2.line(frame,(frameCenterX+5,frameCenterY), (frameCenterX-5, frameCenterY), (0,0,255), 2)
-            hand_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
-            face_cascade = cv2.CascadeClassifier('/home/pi/opencv-3.4.3/data/haarcascades/haarcascade_frontalface_default.xml')  
+            hand_cascade = cv2.CascadeClassifier('../haarcascade_hand_alt.xml')   #TODO: Trained haarcascade  
+            face_cascade = cv2.CascadeClassifier('../haarcascade_frontalface_default.xml')  
             gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) #Convert to grayscale
             faces = face_cascade.detectMultiScale(gray, 1.1, 5) #Detect faces
             for(x,y,w,h) in faces:
@@ -279,22 +293,22 @@ class App:
                             # Adjust X axis
                              #Negative
                             if(distanceX<-1*XMARGIN):
-                                turnTurret("right")
+                                self.right(None)
                              #Positive
                             elif(distanceX>XMARGIN):
-                                turnTurret("left")
+                                self.left(None)
                              #XMatched
                             else:
-                                turnTurret("stopX")
+                                self.x_stop(None)
                             #Adjust Y axis
                             #Negative
                             if(distanceY<-1*YMARGIN):
-                                turnTurret("down")
+                                self.down(None)
                             #Positive
                             elif(distanceY>YMARGIN):
-                                turnTurret("up")
+                                self.up(None)
                             else:
-                                turnTurret("stopY")
+                                self.y_stop(None)
                             return True
                         else:
                             print "No hands found"
@@ -302,56 +316,117 @@ class App:
             else:
                 print "More than one face found"
                 return False
-        else:
+        elif self.connected:
+            frameCenterX = ((frame.shape[1] / 2))
+            frameCenterY = ((frame.shape[0] / 2))
+            encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),100]
+            result, imgencode = cv2.imencode('.jpg', frame, encode_param)
+            stringData = imgencode.tostring()
             try:
-                while standalone != 1:
-                    try:
-                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        s.connect((PC_IP, PC_PORT))
-                        encodedimg = cv2.imencode('.jpg', frame)
-                        s.send(encodedimg)
-                        time.sleep(0.01) 
-                    except Exception: 
-                        print "Error sending to PC"
-                s.close()
-            except:
-                pass
+                #time.sleep(.0001) #otherwise send to fast and the server receive images in pieces and fail
+                self.send.send( str(len(stringData)).ljust(16))
+                self.send.send(stringData)
+                try:
+                    rec = self.conn.recv(4*12)
+                    print(len(rec))
+                    self.datum = struct.unpack("iiiiiiiiiiii",rec)
+                except socket.error:
+                    pass
+                (fx,fy,fw,fh,sx,sy,sw,sh,hx,hy,hw,hh) = self.datum
+                if fx >= 0:
+                    cv2.rectangle(frame,(fx,fy),(fx+fw,fy+fh),(0,0,255),3)
+                    cv2.rectangle(frame,(sx,sy),(sx+sw,sy+sh),(255,0,255),3)
+                    if hx >= 0:
+                        cv2.rectangle(frame,(hx,hy),(hx+hw,hy+hh),(0,255,0),3)
+                        targetCenterX = (hx +(hw/2))
+                        targetCenterY = (hy+(hh/2))
+                        distanceX = frameCenterX-targetCenterX
+                        distanceY = frameCenterY-targetCenterY 
+                        # Adjust X axis
+                            #Negative
+                        if(distanceX<-1*XMARGIN):
+                            self.right(None)
+                            #Positive
+                        elif(distanceX>XMARGIN):
+                            self.left(None)
+                            #XMatched
+                        else:
+                            self.x_stop(None)
+                        #Adjust Y axis
+                        #Negative
+                        if(distanceY<-1*YMARGIN):
+                            self.down(None)
+                        #Positive
+                        elif(distanceY>YMARGIN):
+                            self.up(None)
+                        else:
+                            self.y_stop(None)
+                        return True
+            except socket.error as e:
+                print(e)
+                self.connected = False
+                self.conn.close()
+                self.send.close()
+                self.conn = False
+                self.initSockets()
+
 
 
     def mode(self):    
         self.autoMode = not self.autoMode
         print "autoMode is " + str(self.autoMode)
         
-        
+    def initSockets(self):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind((TCP_IP, PORT+1))
+        self.s.setblocking(False)
+        self.s.listen(1)
+        self.connected = False
+        self.conn = False
+        self.send = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     def update(self):
         #try:
         
             # Get a frame from the video source
-            ret, frame = self.vid.get_frame()
-
-            if ret:
-                if self.autoMode:
-                    if standalone == 1:
-                        font = cv2.FONT_HERSHEY_SIMPLEX
-                        cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
-                        imageResize = cv2.resize(frame, None, fx = 0.65, fy = 0.65)
-                        if not (self.detectFaces(imageResize)):
-                            turnTurret("stopX")
-                            turnTurret("stopY")
-                        self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(imageResize))
-                        self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
-                    else:
-                        cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
-                        if not (self.detectFaces(frame)):
-                            turnTurret("stopX")
-                            turnTurret("stopY")
-                        self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
-                        self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+        ret, frame = self.vid.get_frame()
+        try:
+            conn2, addr = self.s.accept()
+            print "Got connection"
+            if self.conn:
+                conn.close()
+            self.conn = conn2
+            self.conn.setblocking(False)
+            self.send.connect((addr[0],PORT))
+            self.connected = True
+        except socket.error:
+            pass
+        if ret:
+            global font
+            if self.autoMode:
+                if self.standalone.get() == 1:
+                    
+                    imageResize = cv2.resize(frame, None, fx = 0.65, fy = 0.65)
+                    if not (self.detectFaces(imageResize)):
+                        self.x_stop(None)
+                        self.y_stop(None)
+                    cv2.putText(imageResize, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
+                    self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(imageResize))
+                    self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
                 else:
+                    
+                    if not (self.detectFaces(frame)):
+                        self.x_stop(None)
+                        self.y_stop(None)
+                    cv2.putText(frame, 'AUTO', (50,70), font, .75, (255,0,0),2,cv2.LINE_AA)
+                    if(self.connected):
+                        cv2.putText(frame, 'CONN', (50,90), font, .75, (255,255,0),2,cv2.LINE_AA)
                     self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
                     self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
+            else:
+                self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+                self.canvas.create_image(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, image = self.photo, anchor = Tkinter.CENTER)
         #except:
-            self.window.after(self.delay, self.update)
+        self.window.after(self.delay, self.update)
         
 
 class MyVideoCapture:
@@ -380,6 +455,10 @@ class MyVideoCapture:
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
+        if self.connected:
+            self.send.close()
+            self.s.close()
+            self.conn.close()
 
 # Create a window and pass it to the Application object
 App(Tkinter.Tk(), "Tkinter and OpenCV", 0)
